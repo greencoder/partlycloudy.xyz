@@ -84,7 +84,7 @@ class NOAA {
           visibility = value
           break;
         case 'Wind Chill':
-          windChill = value;
+          windChill = value.split(' ')[0];
           break;
         case 'Last update':
           updated = value;
