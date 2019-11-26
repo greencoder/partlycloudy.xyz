@@ -1,21 +1,23 @@
 <template>
   <div id="container">
-    <Location v-if="locationMissing"
+    <Error v-if="error !== null"
+           :error="error" />
+    <Location v-if="shouldShowLocation"
               :didUpdateLocation="didUpdateLocation" />
-    <Loading v-if="fetched === false && !locationMissing" />
-    <Conditions v-if="fetched === true"
+    <Loading v-if="shouldShowLoading" />
+    <Conditions v-if="shouldShowConditions"
                 :location="location"
                 :conditions="conditions"
                 :didUpdateLocation="didUpdateLocation" />
-    <Alerts v-if="fetched === true && alerts.length > 0"
+    <Alerts v-if="shouldShowAlerts"
             :alerts="alerts" />
-    <Forecasts v-if="fetched === true"
+    <Forecasts v-if="shouldShowForecasts"
                :about="about"
                :forecasts="forecasts" />
-    <Radar v-if="fetched === true"
+    <Radar v-if="shouldShowRadar"
           :radar="radar"
           :satellite="satellite" />
-    <footer v-if="fetched === true">
+    <footer v-if="shouldShowRadar">
       Last Updated: {{ conditions.updated }}
     </footer>
   </div>
@@ -24,6 +26,7 @@
 <script>
 import Alerts from './components/Alerts.vue';
 import Conditions from './components/Conditions.vue';
+import Error from './components/Error.vue';
 import Forecasts from './components/Forecasts.vue';
 import Loading from './components/Loading.vue';
 import Location from './components/Location.vue';
@@ -35,6 +38,7 @@ export default {
   components: {
     Alerts,
     Conditions,
+    Error,
     Forecasts,
     Loading,
     Location,
@@ -59,6 +63,8 @@ export default {
         this.alerts = weather.alerts;
         this.about = weather.about;
         this.fetched = true;
+      }).catch(err => {
+        this.error = err;
       });
     },
     readUrlParams: function() {
@@ -75,6 +81,27 @@ export default {
   computed: {
     locationMissing: function() {
       return this.latitude === null && this.longitude === null;
+    },
+    shouldShowLocation: function() {
+      return this.locationMissing && this.error === null;
+    },
+    shouldShowLoading: function() {
+      return this.fetched === false && !this.locationMissing && this.error === null;
+    },
+    shouldShowConditions: function() {
+      return this.fetched === true && this.error === null;
+    },
+    shouldShowAlerts: function() {
+      return this.fetched === true && this.error === null && this.alerts.length > 0;
+    },
+    shouldShowForecasts: function() {
+      return this.fetched === true && this.error === null;
+    },
+    shouldShowRadar: function() {
+      return this.fetched === true && this.error === null;
+    },
+    shouldShowFooter: function() {
+      return this.fetched === true && this.error === null;
     }
   },
   mounted() {
@@ -85,6 +112,7 @@ export default {
   },
   data: function() {
     return {
+      error: null,
       fetched: false,
       latitude: null,
       longitude: null,

@@ -5,8 +5,13 @@ class NOAA {
       console.log('Fetching NOAA Weather');
       this.fetch(lat, lng).then(html => {
         console.log('Fetch complete. Parsing HTML.');
-        let data = this.parse(html);
-        resolve(data);
+        try {
+          let data = this.parse(html);
+          resolve(data);
+        }
+        catch(err) {
+          reject(err);
+        }
       }).catch(() => {
         reject('Could not fetch noaa');
       });
@@ -199,19 +204,24 @@ class NOAA {
       hiLo = hiLo.slice(0, endIndex);
 
       let iconElement = tombstone.querySelector('img');
-      let descLong = iconElement.alt.split(': ')[1].trim();
+      let altAttribute = iconElement.alt;
 
-      let iconPath = this.qsImgSrcPath(tombstone, 'img');
-      let icon = `https://forecast.weather.gov${iconPath}`;
+      // If an alert is present in the tombstones, skip it
+      if (altAttribute) {
+        let descLong = altAttribute.split(': ')[1].trim();
+        let iconPath = this.qsImgSrcPath(tombstone, 'img');
+        let icon = `https://forecast.weather.gov${iconPath}`;
 
-      forecasts.push({
-        "period": period,
-        "descShort": descShort,
-        "hiLo": hiLo,
-        "hiLoType": hiLoType,
-        "icon": icon,
-        "descLong": descLong
-      })
+        forecasts.push({
+          "period": period,
+          "descShort": descShort,
+          "hiLo": hiLo,
+          "hiLoType": hiLoType,
+          "icon": icon,
+          "descLong": descLong
+        });
+      }
+
     });
 
     return forecasts;
